@@ -71,3 +71,69 @@ jobs:
       # We use "|| true" here as well so the pipeline doesn't fail just because of an audit warning
       - name: Security Check
         run: npm audit || true
+# Security Scanning Stage
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    # Run AFTER the test stage
+    needs: test
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      # Use Node.js LTS version
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          
+      # Optimization: Cache node_modules using actions/cache for both root and /backend
+      - name: Cache Node Modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            backend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+            
+      # Install dependencies with respect to project structure (frontend & backend)
+      - name: Install Frontend Dependencies
+        run: npm install
+        
+      - name: Install Backend Dependencies
+        run: |
+          cd backend
+          npm install
+          
+      # 1. Dependency Vulnerability Scan (Frontend and Backend)
+      - name: Dependency Vulnerability Scan (Frontend)
+        run: npm audit --audit-level=high || true
+        
+      - name: Dependency Vulnerability Scan (Backend)
+        run: |
+          cd backend
+          npm audit --audit-level=high || true
+          
+      # 2. Code Security Scan (Frontend and Backend)
+      # We install eslint and the security plugin dynamically in case they aren't fully configured
+      - name: Code Security Scan (Frontend)
+        run: |
+          npm install eslint eslint-plugin-security --no-save || true
+          npx eslint . || true
+          
+      - name: Code Security Scan (Backend)
+        run: |
+          cd backend
+          npm install eslint eslint-plugin-security --no-save || true
+          npx eslint . || true
+          
+      # 3. Secret Detection (Scan the entire repo path: ./
+      - name: Secret Detection
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.before || github.base_ref }}
+          head: ${{ github.event.after || github.head_ref || 'HEAD' }}          
