@@ -1,24 +1,30 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const { MongoClient, ObjectId } = require('mongodb');
-const cors = require('cors');          
+const cors = require('cors');
+
 dotenv.config();
 
-const url = process.env.MONGO_URI || 'mongodb://localhost:27017';
-const client = new MongoClient(url);
-
-const dbName = process.env.DB_NAME || 'passop';
 const app = express();
 const port = process.env.PORT || 3000;
 
+// 🔴 IMPORTANT: No localhost fallback
+const url = process.env.MONGO_URI;
+const client = new MongoClient(url);
+
+// DB name
+const dbName = process.env.DB_NAME || 'passop';
+
+// Middleware
 app.use(express.json());
-app.use(cors());             
+app.use(cors()); // keep open for now
 
 async function start() {
   try {
     await client.connect();
-    console.log('MongoDB connected to', url);
+    console.log('MongoDB connected');
 
+    // GET all passwords
     app.get('/', async (req, res) => {
       try {
         const db = client.db(dbName);
@@ -26,11 +32,12 @@ async function start() {
         const results = await collection.find({}).toArray();
         res.json(results);
       } catch (err) {
-        console.error('GET / error:', err);
+        console.error('GET error:', err);
         res.status(500).json({ error: 'Internal Server Error' });
       }
     });
 
+    // POST new password
     app.post('/', async (req, res) => {
       try {
         const db = client.db(dbName);
@@ -38,7 +45,7 @@ async function start() {
         const data = req.body;
 
         if (!data.site || !data.username || !data.password) {
-          return res.status(400).json({ error: 'Missing required fields: site, username, password' });
+          return res.status(400).json({ error: 'Missing required fields' });
         }
 
         const insertResult = await collection.insertOne({
@@ -46,19 +53,23 @@ async function start() {
           createdAt: new Date()
         });
 
-        res.status(201).json({ success: true, insertedId: insertResult.insertedId });
+        res.status(201).json({
+          success: true,
+          insertedId: insertResult.insertedId
+        });
       } catch (err) {
-        console.error('POST / error:', err);
+        console.error('POST error:', err);
         res.status(500).json({ error: 'Internal Server Error' });
       }
     });
 
+    // DELETE password
     app.delete('/:id', async (req, res) => {
       try {
         const id = req.params.id;
 
         if (!ObjectId.isValid(id)) {
-          return res.status(400).json({ success: false, error: 'Invalid id' });
+          return res.status(400).json({ error: 'Invalid id' });
         }
 
         const db = client.db(dbName);
@@ -66,22 +77,23 @@ async function start() {
         const result = await collection.deleteOne({ _id: new ObjectId(id) });
 
         if (result.deletedCount === 1) {
-          return res.json({ success: true, deletedCount: 1 });
+          return res.json({ success: true });
         } else {
-          return res.status(404).json({ success: false, error: 'Not found' });
+          return res.status(404).json({ error: 'Not found' });
         }
       } catch (err) {
-        console.error('DELETE /:id error:', err);
-        res.status(500).json({ success: false, error: 'Internal Server Error' });
+        console.error('DELETE error:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
       }
     });
 
-    app.listen(port, () =>
-      console.log(`Example app listening at http://localhost:${port}`)
-    );
+    // Start server
+    app.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+    });
 
   } catch (err) {
-    console.error('Failed to start server:', err);
+    console.error('Startup error:', err);
     process.exit(1);
   }
 }

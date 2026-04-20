@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Manager = () => {
   const ref = useRef();
@@ -10,7 +11,7 @@ const Manager = () => {
 
   const getPasswords = async () => {
     try {
-      let req = await fetch("http://localhost:3000/");
+      let req = await fetch(`${API_URL}/`);
       let passwords = await req.json();
       console.log("Fetched passwords:", passwords);
       setPasswordArray(passwords);
@@ -67,7 +68,7 @@ const Manager = () => {
     ) {
       try {
        
-        const res = await fetch("http://localhost:3000/", {
+          const res = await fetch(`${API_URL}/`, {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify(form),
@@ -117,7 +118,7 @@ const Manager = () => {
     if (!c) return;
 
     try {
-      const res = await fetch(`http://localhost:3000/${_id}`, {
+      const res = await fetch(`${API_URL}/${_id}`, {
         method: "DELETE",
       });
 
