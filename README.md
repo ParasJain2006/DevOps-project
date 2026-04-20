@@ -1,6 +1,12 @@
-# React + Vite
+# DevOps Project
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+
+## Deployment Information
+
+- **Frontend / General Deployment:** Render
+- **Backend Deployment:** Vercel
+
 
 Currently, two official plugins are available:
 
