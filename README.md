@@ -145,21 +145,6 @@ PassOp uses a feature branch workflow with Git Flow principles, ensuring clean c
 
 ---
 
-## 📸 Screenshots & Visual Documentation
-
-### 🟢 Pipeline Success
-![CI/CD Pipeline Success](https://via.placeholder.com/800x400/4CAF50/FFFFFF?text=Pipeline+Success)
-*Successful GitHub Actions workflow showing all tests passing and deployment completed.*
-
-### 🚀 Deployment Output
-![Deployment Logs](https://via.placeholder.com/800x400/2196F3/FFFFFF?text=Deployment+Output)
-*Clean deployment logs showing container startup and health checks.*
-
-### 🎨 Application Running
-![PassOp Interface](https://via.placeholder.com/800x400/9C27B0/FFFFFF?text=PassOp+Interface)
-*Main application interface showing password management dashboard.*
----
-
 ## 🎯 Challenges Faced & Solutions
 
 ### 🔴 Challenge 1: Database Connection Issues
